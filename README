@@ -74,9 +74,11 @@ supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf reload
 支持Centos-7---Ubuntu-16.04
 
 - - - - - - - - - - - - -- - - - - - - - - - - - -
-
 搬迁主控
 注意：下面的迁移步骤不包括迁移elasticsearch的数据
+
+- - - - - - - - - -
+
 1 备份旧主控数据
 在旧主控执行如下命令开始备份（注意：备份前会停止旧主控的进程）
 
@@ -85,17 +87,20 @@ cd /root
 curl https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/backup_master.sh -o backup_master.sh
 chmod +x backup_master.sh
 ./backup_master.sh
-这时候将在目录/root下，打包生成cdn.sql.gz文件，请把这个文件传输到新主控的/root/目录下，可以使用scp命令，命令如下：
 
+这时候将在目录/root下，打包生成cdn.sql.gz文件，请把这个文件传输到新主控的/root/目录下，可以使用scp命令，命令如下：
 cd /root
 scp cdn.sql.gz   root@新主控IP:/root/
+
+- - - - - - - - - -
+
 2 在新机器安装好主控程序
 首先登录cdnfly.cn，更新授权为新主控ip，并清空机器码
 登录旧主控机器，执行如下命令查看版本:
 
 grep VERSION_NAME /opt/cdnfly/master/conf/config.py
-如下图，版本为v5.1.13：
 
+如下图，版本为v5.1.13：
 登录新机器，执行如下命令安装:
 
 #curl http://dl.cdnfly.cn/cdnfly/master.sh -o master.sh
@@ -103,13 +108,16 @@ curl https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/hf_master.sh
 chmod +x hf_master.sh
 ./hf_master.sh --ver v5.1.13
 其中v5.1.13替换成自己的主控版本号
+
+- - - - - - - - - -
+
 3 登录新主控，恢复备份
 执行如下命令恢复
-
 cd /root
 curl http://us.centos.bz/cdnfly/restore_master.sh -o restore_master.sh
 chmod +x restore_master.sh
 ./restore_master.sh
+
 从旧主控下载/opt/cdnfly/master/conf/config.py上传到新主控覆盖
 然后在新主控初始化es,重启新主控
 执行如下命令初始化:
@@ -119,7 +127,10 @@ wget us.centos.bz/cdnfly/int_es.sh -O int_es.sh
 chmod +x int_es.sh
 ./int_es.sh /home/es
 supervisorctl restart all
+
 其中/var/lib/elasticsearch为es的数据目录，可以更改成其它的，比如/home/es
+
+- - - - - - - - - -
 
 4 替换节点里的主控IP
 一个个登录节点，执行如下命令替换
