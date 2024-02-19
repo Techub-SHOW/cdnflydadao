@@ -71,7 +71,8 @@ supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf reload
 在旧主控执行如下命令开始备份（注意：备份前会停止旧主控的进程）
 
 cd /root
-curl http://us.centos.bz/cdnfly/backup_master.sh -o backup_master.sh
+# curl http://us.centos.bz/cdnfly/backup_master.sh -o backup_master.sh
+curl https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/backup_master.sh
 chmod +x backup_master.sh
 ./backup_master.sh
 这时候将在目录/root下，打包生成cdn.sql.gz文件，请把这个文件传输到新主控的/root/目录下，可以使用scp命令，命令如下：
