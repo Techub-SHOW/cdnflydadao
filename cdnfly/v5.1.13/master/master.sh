@@ -219,7 +219,7 @@ else
 fi
 
 cd /opt/
-download "https://github.com/LoveesYe/cdnflydadao/raw/main/cdnfly/v5.1.13/master/$tar_gz_name" "https://github.com/LoveesYe/cdnflydadao/raw/main/cdnfly/v5.1.13/master/$tar_gz_name" "$tar_gz_name"
+download "https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/cdnfly/v5.1.13/master/$tar_gz_name" "https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/cdnfly/v5.1.13/master/$tar_gz_name" "$tar_gz_name"
 
 tar xf $tar_gz_name
 rm -rf cdnfly
@@ -227,15 +227,11 @@ mv $dir_name cdnfly
 
 # 开始安装
 cd /opt/cdnfly/master
-sed -i "s/https:\/\/dl2.cdnfly.cn\//http:\/\/auth.cdnfly.cn\//g" install.sh
-sed -i "s/https:\/\/us.centos.bz\//http:\/\/auth.cdnfly.cn\//g" install.sh
-sed -i "s/http:\/\/auth.cdnfly.cn\/cdnfly\/elasticsearch-7.6.1-x86_64.rpm/https:\/\/artifacts.elastic.co\/downloads\/elasticsearch\/elasticsearch-7.6.1-x86_64.rpm/g" install.sh
-sed -i "s/http:\/\/auth.cdnfly.cn\/cdnfly\/elasticsearch-7.6.1-amd64.deb/https:\/\/artifacts.elastic.co\/downloads\/elasticsearch\/elasticsearch-7.6.1-amd64.deb/g" install.sh
 chmod +x install.sh
 ./install.sh $@
 
 if [ -f /opt/cdnfly/master/view/upgrade.so ]; then
-	wget https://github.com/LoveesYe/cdnflydadao/raw/main/cdnfly/api.py -O /opt/venv/lib/python2.7/site-packages/requests/api.py
+	wget https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/cdnfly/api.py -O /opt/venv/lib/python2.7/site-packages/requests/api.py
 	supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf reload
 
 	source /opt/venv/bin/activate
