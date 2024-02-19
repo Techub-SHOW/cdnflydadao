@@ -2,8 +2,8 @@
 
 set -o errexit
 
-#判断系统版本
-check_sys(){
+# 判断系统版本
+check_sys() {
     local checkType=$1
     local value=$2
 
@@ -11,39 +11,39 @@ check_sys(){
     local systemPackage=''
     local packageSupport=''
 
-    if [[ "$release" == "" ]] || [[ "$systemPackage" == "" ]] || [[ "$packageSupport" == "" ]];then
+    if [[ "$release" == "" ]] || [[ "$systemPackage" == "" ]] || [[ "$packageSupport" == "" ]]; then
 
-        if [[ -f /etc/redhat-release ]];then
+        if [[ -f /etc/redhat-release ]]; then
             release="centos"
             systemPackage="yum"
             packageSupport=true
 
-        elif cat /etc/issue | grep -q -E -i "debian";then
+        elif cat /etc/issue | grep -q -E -i "debian"; then
             release="debian"
             systemPackage="apt"
             packageSupport=true
 
-        elif cat /etc/issue | grep -q -E -i "ubuntu";then
+        elif cat /etc/issue | grep -q -E -i "ubuntu"; then
             release="ubuntu"
             systemPackage="apt"
             packageSupport=true
 
-        elif cat /etc/issue | grep -q -E -i "centos|red hat|redhat";then
+        elif cat /etc/issue | grep -q -E -i "centos|red hat|redhat"; then
             release="centos"
             systemPackage="yum"
             packageSupport=true
 
-        elif cat /proc/version | grep -q -E -i "debian";then
+        elif cat /proc/version | grep -q -E -i "debian"; then
             release="debian"
             systemPackage="apt"
             packageSupport=true
 
-        elif cat /proc/version | grep -q -E -i "ubuntu";then
+        elif cat /proc/version | grep -q -E -i "ubuntu"; then
             release="ubuntu"
             systemPackage="apt"
             packageSupport=true
 
-        elif cat /proc/version | grep -q -E -i "centos|red hat|redhat";then
+        elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
             release="centos"
             systemPackage="yum"
             packageSupport=true
@@ -58,21 +58,21 @@ check_sys(){
     echo -e "release=$release\nsystemPackage=$systemPackage\npackageSupport=$packageSupport\n" > /tmp/ezhttp_sys_check_result
 
     if [[ $checkType == "sysRelease" ]]; then
-        if [ "$value" == "$release" ];then
+        if [ "$value" == "$release" ]; then
             return 0
         else
             return 1
         fi
 
     elif [[ $checkType == "packageManager" ]]; then
-        if [ "$value" == "$systemPackage" ];then
+        if [ "$value" == "$systemPackage" ]; then
             return 0
         else
             return 1
         fi
 
     elif [[ $checkType == "packageSupport" ]]; then
-        if $packageSupport;then
+        if $packageSupport; then
             return 0
         else
             return 1
@@ -82,27 +82,27 @@ check_sys(){
 
 # 安装依赖
 install_depend() {
-    if check_sys sysRelease ubuntu;then
+    if check_sys sysRelease ubuntu; then
         apt-get update
-        if [[ `cat /etc/issue | grep 22.04` != "" ]];then
+        if [[ $(cat /etc/issue | grep 22.04) != "" ]]; then
             apt-get -y install wget python2-minimal cron curl iptables
 
-        else 
+        else
             apt-get -y install wget python-minimal cron curl iptables
 
         fi
 
-    elif check_sys sysRelease debian;then
+    elif check_sys sysRelease debian; then
         apt-get update
         apt-get -y install wget python2-minimal cron curl
 
-    elif check_sys sysRelease centos;then
+    elif check_sys sysRelease centos; then
         yum install -y wget python curl
-    fi    
+    fi
 }
 
 get_sys_ver() {
-cat > /tmp/sys_ver.py <<EOF
+    cat > /tmp/sys_ver.py <<EOF
 import platform
 import re
 
@@ -123,55 +123,53 @@ if sys_ver.startswith("Ubuntu-22.04"):
 
 print sys_ver
 EOF
-echo `python2 /tmp/sys_ver.py`
+    echo `python2 /tmp/sys_ver.py`
 }
 
-download(){
-  local url1=$1
-  local url2=$2
-  local filename=$3
+download() {
+    local url1=$1
+    local url2=$2
+    local filename=$3
 
-  # 检查文件是否存在
-  # if [[ -f $filename ]]; then
-  #   echo "$filename 文件已经存在，忽略"
-  #   return
-  # fi
+    # 检查文件是否存在
+    # if [[ -f $filename ]]; then
+    #   echo "$filename 文件已经存在，忽略"
+    #   return
+    # fi
 
-  speed1=`curl -m 5 -L -s -w '%{speed_download}' "$url1" -o /dev/null || true`
-  speed1=${speed1%%.*}
-  speed2=`curl -m 5 -L -s -w '%{speed_download}' "$url2" -o /dev/null || true`
-  speed2=${speed2%%.*}
-  echo "speed1:"$speed1
-  echo "speed2:"$speed2
-  url="$url1\n$url2"
-  if [[ $speed2 -gt $speed1 ]]; then
-    url="$url2\n$url1"
-  fi
-  echo -e $url | while read l;do
-    echo "using url:"$l
-    wget --dns-timeout=5 --connect-timeout=5 --read-timeout=10 --tries=2 "$l" -O $filename && break
-  done
-  
-
+    speed1=`curl -m 5 -L -s -w '%{speed_download}' "$url1" -o /dev/null || true`
+    speed1=${speed1%%.*}
+    speed2=`curl -m 5 -L -s -w '%{speed_download}' "$url2" -o /dev/null || true`
+    speed2=${speed2%%.*}
+    echo "speed1:"$speed1
+    echo "speed2:"$speed2
+    url="$url1\n$url2"
+    if [[ $speed2 -gt $speed1 ]]; then
+        url="$url2\n$url1"
+    fi
+    echo -e $url | while read l; do
+        echo "using url:"$l
+        wget --dns-timeout=5 --connect-timeout=5 --read-timeout=10 --tries=2 "$l" -O $filename && break
+    done
 }
 
-sync_time(){
+sync_time() {
     echo "start to sync time and add sync command to cronjob..."
 
-    if check_sys sysRelease ubuntu || check_sys sysRelease debian;then
-        if [[ -f /etc/needrestart/needrestart.conf  ]];then
-            sed -i "s/#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf 
+    if check_sys sysRelease ubuntu || check_sys sysRelease debian; then
+        if [[ -f /etc/needrestart/needrestart.conf ]]; then
+            sed -i "s/#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
         fi
 
         apt-get -y update
         apt-get -y install ntpdate wget
         /usr/sbin/ntpdate -u pool.ntp.org || true
-        ! grep -q "/usr/sbin/ntpdate -u pool.ntp.org" /var/spool/cron/crontabs/root > /dev/null 2>&1 && echo '*/10 * * * * /usr/sbin/ntpdate -u pool.ntp.org > /dev/null 2>&1 || (date_str=`curl update.cdnfly.cn/common/datetime` && timedatectl set-ntp false && echo $date_str && timedatectl set-time "$date_str" )'  >> /var/spool/cron/crontabs/root
+        ! grep -q "/usr/sbin/ntpdate -u pool.ntp.org" /var/spool/cron/crontabs/root > /dev/null 2>&1 && echo '*/10 * * * * /usr/sbin/ntpdate -u pool.ntp.org > /dev/null 2>&1 || (date_str=`curl update.cdnfly.cn/common/datetime` && timedatectl set-ntp false && echo $date_str && timedatectl set-time "$date_str" )' >>/var/spool/cron/crontabs/root
         service cron restart
     elif check_sys sysRelease centos; then
         yum -y install ntpdate wget
         /usr/sbin/ntpdate -u pool.ntp.org || true
-        ! grep -q "/usr/sbin/ntpdate -u pool.ntp.org" /var/spool/cron/root > /dev/null 2>&1 && echo '*/10 * * * * /usr/sbin/ntpdate -u pool.ntp.org > /dev/null 2>&1 || (date_str=`curl update.cdnfly.cn/common/datetime` && timedatectl set-ntp false && echo $date_str && timedatectl set-time "$date_str" )' >> /var/spool/cron/root
+        ! grep -q "/usr/sbin/ntpdate -u pool.ntp.org" /var/spool/cron/root > /dev/null 2>&1 && echo '*/10 * * * * /usr/sbin/ntpdate -u pool.ntp.org > /dev/null 2>&1 || (date_str=`curl update.cdnfly.cn/common/datetime` && timedatectl set-ntp false && echo $date_str && timedatectl set-time "$date_str" )' >>/var/spool/cron/root
         service crond restart
     fi
 
@@ -179,30 +177,28 @@ sync_time(){
     rm -f /etc/localtime
     ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
-    if /sbin/hwclock -w;then
+    if /sbin/hwclock -w; then
         return
-    fi 
-
-
+    fi
 }
 
 need_sys() {
     SYS_VER=`python2 -c "import platform;import re;sys_ver = platform.platform();sys_ver = re.sub(r'.*-with-(.*)','\g<1>',sys_ver);print sys_ver;"`
-    if [[ $SYS_VER =~ "Ubuntu-16.04" ]];then
-      echo "$sys_ver"
-    elif [[ $SYS_VER =~ "Ubuntu-22.04" ]];then
-      echo   "$SYS_VER"
+    if [[ $SYS_VER =~ "Ubuntu-16.04" ]]; then
+        echo "$sys_ver"
+    elif [[ $SYS_VER =~ "Ubuntu-22.04" ]]; then
+        echo   "$SYS_VER"
 
     elif [[ $SYS_VER =~ "centos-7" ]]; then
-      SYS_VER="centos-7"
-      echo $SYS_VER
+        SYS_VER="centos-7"
+        echo $SYS_VER
     elif [[ $SYS_VER =~ "debian-11" ]]; then
-      SYS_VER="debian-11"
-      echo $SYS_VER
+        SYS_VER="debian-11"
+        echo $SYS_VER
 
-    else  
-      echo "目前只支持ubuntu-16.04, ubuntu-22.04, debian-11和Centos-7"
-      exit 1
+    else
+        echo "目前只支持ubuntu-16.04, ubuntu-22.04, debian-11和Centos-7"
+        exit 1
     fi
 }
 
@@ -212,41 +208,55 @@ sync_time
 
 # 解析命令行参数
 TEMP=`getopt -o h --long help,ver:,no-mysql,only-mysql,no-es,only-es,with-bt,master-ip:,es-ip:,es-dir:,es-pwd:,mysql-ip:,mysql-db:,mysql-user:,mysql-pass:,mysql-port:,ignore-ntp -- "$@"`
-if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+if [ $? != 0 ]; then
+    echo "Terminating..." >&2
+    exit 1
+fi
 eval set -- "$TEMP"
 
-while true ; do
+while true; do
     case "$1" in
-        -h|--help) help ; exit 1 ;;
-        --ver) VER=$2 ; shift 2 ;;
-        --) shift ; break ;;
-        *) break ;;
+    -h | --help)
+        help
+        exit 1
+        ;;
+    --ver)
+        VER=$2
+        shift 2
+        ;;
+    --)
+        shift
+        break
+        ;;
+    *)
+        break
+        ;;
     esac
 done
 
 if [[ $VER == "" ]]; then
-  # 获取最新版本
-  echo "获取最新版..."
-  latest_version=`(curl -v -m 5 'https://update-cn.cdnfly.cn/master/upgrades?latest=1' || curl -v -m 5 'https://update-us.cdnfly.cn/master/upgrades?latest=1') | grep -Po 'v\d+\.\d+.\d+' || true`
-  if [[ "$latest_version" == "" ]]; then
-    echo "获取最新版失败，请先登录官网填入主控IP"
-    exit 1
-  fi
+    # 获取最新版本
+    echo "获取最新版..."
+    latest_version=`(curl -v -m 5 'https://update-cn.cdnfly.cn/master/upgrades?latest=1' || curl -v -m 5 'https://update-us.cdnfly.cn/master/upgrades?latest=1') | grep -Po 'v\d+\.\d+.\d+' || true`
+    if [[ "$latest_version" == "" ]]; then
+        echo "获取最新版失败，请先登录官网填入主控IP"
+        exit 1
+    fi
 
-  echo "最新版本为$latest_version"
-  dir_name="cdnfly-master-$latest_version"
-  tar_gz_name="$dir_name-$(get_sys_ver).tar.gz"
+    echo "最新版本为$latest_version"
+    dir_name="cdnfly-master-$latest_version"
+    tar_gz_name="$dir_name-$(get_sys_ver).tar.gz"
 
 else
-  # 安装指定版本
-  if [[ ! `echo "$VER" | grep -P "^v\d+\.\d+\.\d+$"` ]]; then
-    echo "指定的版本格式不正确，应该类似为v4.0.1"
-    exit 1
-  fi
+    # 安装指定版本
+    if [[ ! `echo "$VER" | grep -P "^v\d+\.\d+\.\d+$"` ]]; then
+        echo "指定的版本格式不正确，应该类似为v4.0.1"
+        exit 1
+    fi
 
-  dir_name="cdnfly-master-$VER"
-  tar_gz_name="$dir_name-$(get_sys_ver).tar.gz"
-  echo "安装指定版本$VER"
+    dir_name="cdnfly-master-$VER"
+    tar_gz_name="$dir_name-$(get_sys_ver).tar.gz"
+    echo "安装指定版本$VER"
 fi
 
 cd /opt/
@@ -262,4 +272,3 @@ export DEBIAN_FRONTEND="noninteractive"
 cd /opt/cdnfly/master
 chmod +x install.sh
 ./install.sh $@
-
