@@ -235,4 +235,3 @@ if [ -f /opt/cdnfly/master/view/upgrade.so ]; then
 	sed -i "s/https:\/\/update.cdnfly.cn\//http:\/\/auth.cdnfly.cn\/\/\/\//g" /opt/cdnfly/master/view/upgrade.so
 	supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf reload
 fi
-
