@@ -81,7 +81,7 @@ check_sys(){
 }
 
 # 停止主控程序
-supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf stop cc_auto_switch node_monitor site_res_count site_sync task
+supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf stop -w cc_auto_switch node_monitor site_res_count site_sync task
 
 
 eval `grep MYSQL_PASS /opt/cdnfly/master/conf/config.py`
