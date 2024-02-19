@@ -80,25 +80,24 @@ check_sys(){
     fi
 }
 
+# 停止主控程序
+supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf stop cc_auto_switch node_monitor site_res_count site_sync task
+
+
 eval `grep MYSQL_PASS /opt/cdnfly/master/conf/config.py`
 eval `grep MYSQL_IP /opt/cdnfly/master/conf/config.py`
 eval `grep MYSQL_PORT /opt/cdnfly/master/conf/config.py`
 eval `grep MYSQL_DB /opt/cdnfly/master/conf/config.py`
 eval `grep MYSQL_USER /opt/cdnfly/master/conf/config.py`
 
-
-# 停止主控程序
-supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf stop cc_auto_switch node_monitor site_res_count site_sync task
-
-# 备份MySQL
-echo "Starting MySQL backup..."
-mysqldump -e --single-transaction --no-tablespaces --default-character-set=utf8 --skip-add-locks -R -f --max_allowed_packet=16777216 --net_buffer_length=16384 -h$MYSQL_IP -u$MYSQL_USER -p$MYSQL_PASS -P$MYSQL_PORT $MYSQL_DB --ignore-table=$MYSQL_DB.node_monitor_log > /root/cdn.sql
-echo "First part of MySQL backup complete."
+echo -e "\033[0;32m开始备份MySQL...\033[0m"
+mysqldump -e --single-transaction --no-tablespaces --default-character-set=utf8 --skip-add-locks -R -f --max_allowed_packet=16777216 --net_buffer_length=16384  -h$MYSQL_IP -u$MYSQL_USER -p$MYSQL_PASS -P$MYSQL_PORT $MYSQL_DB --ignore-table=$MYSQL_DB.node_monitor_log > /root/cdn.sql
+echo -e "\033[0;32m第一部分MySQL备份完成。\033[0m"
 mysqldump -d -e --single-transaction --no-tablespaces --default-character-set=utf8 --skip-add-locks -R -f --max_allowed_packet=16777216 --net_buffer_length=16384 -h$MYSQL_IP -u$MYSQL_USER -p$MYSQL_PASS -P$MYSQL_PORT $MYSQL_DB node_monitor_log >> /root/cdn.sql
-echo "Second part of MySQL backup complete."
+echo -e "\033[0;32m第二部分MySQL备份完成。\033[0m"
 rm -f /root/cdn.sql.gz
 gzip /root/cdn.sql
-echo "MySQL backup completed successfully."
+echo -e "\033[0;32mMySQL备份成功。\033[0m"
 
 # 恢复进程
 supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf start cc_auto_switch node_monitor site_res_count site_sync task
