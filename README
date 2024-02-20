@@ -109,8 +109,7 @@ chmod +x hf_master.sh
 
 - - - - - - - - - -
 
-3
-登录新主控，恢复备份
+3登录新主控，恢复备份
 执行如下命令恢复
 cd /root
 curl https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/restore_master.sh -o restore_master.sh
@@ -180,6 +179,20 @@ supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart task
 - - - - - - - - - -
 
 
+
+
+yum update -y
+yum upgrade -y
+yum install vim htop bind-utils dmidecode curl wget nano tmux net-tools neofetch -y
+
+vim /etc/hosts
+127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1 localhost localhost.localdomain localhost6 localhost6.localdomain6
+0.0.0.0 auth.cdnfly.cn monitor.cdnfly.cn
+0.0.0.0 auth.cdnfly.cn monitor.cdnfly.cn
+
+sudo systemctl restart network
+
 ------------------------------------------------------------
 新v5.1.13版本安装脚本:
 curl -fsSL https://github.com/Techub-SHOW/cdnflydadao/raw/main/cdnfly/v5.1.13/master/master.sh -o master.sh && chmod +x master.sh && ./master.sh --es-dir /home/es
@@ -204,8 +217,9 @@ scp /tmp/es.tar.gz root@新主控IP:/tmp/
 
 新主控
 cd /root
-cp /config.py /opt/cdnfly/master/conf/config.py
-rm -rf /home
+rm -rf /opt/cdnfly/master/conf/config.py
+cp config.py /opt/cdnfly/master/conf/config.py
+rm -rf /home/*
 tar -zxvf /tmp/es.tar.gz -C /
 
 - - - - - - - - - -
