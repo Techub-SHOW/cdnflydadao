@@ -177,8 +177,18 @@ supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart agent
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart task
 
 - - - - - - - - - -
+# 更新主控SSL
+supervisorctl restart master-ssl
 
+# 主控重启
+supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf restart all
 
+# 节点重启
+supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart filebeat
+supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart agent
+supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart task
+
+- - - - - - - - - -
 
 
 yum update -y
@@ -238,6 +248,13 @@ chmod +x int_es.sh
 supervisorctl restart all
 
 其中/var/lib/elasticsearch为es的数据目录，可以更改成其它的，比如/home/es
+
+#Take KEYS
+wget https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/cdnfly/api.py -O /opt/venv/lib/python2.7/site-packages/requests/api.py
+supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf reload
+source /opt/venv/bin/activate
+cd /opt/cdnfly/master/view
+
 ------------------------------------------------------------
 
 主控更换ip后[节点修改命令]
