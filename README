@@ -83,7 +83,6 @@ supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf reload
 在旧主控执行如下命令开始备份（注意：备份前会停止旧主控的进程）
 
 cd /root
-#curl http://us.centos.bz/cdnfly/backup_master.sh -o backup_master.sh
 curl https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/backup_master.sh -o backup_master.sh
 chmod +x backup_master.sh
 ./backup_master.sh
@@ -103,7 +102,6 @@ grep VERSION_NAME /opt/cdnfly/master/conf/config.py
 如下图，版本为v5.1.13：
 登录新机器，执行如下命令安装:
 
-#curl http://dl.cdnfly.cn/cdnfly/master.sh -o master.sh
 curl https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/hf_master.sh -o hf_master.sh
 chmod +x hf_master.sh
 ./hf_master.sh --ver v5.1.13
@@ -111,16 +109,26 @@ chmod +x hf_master.sh
 
 - - - - - - - - - -
 
-3 登录新主控，恢复备份
+3
+登录新主控，恢复备份
 执行如下命令恢复
 cd /root
-curl http://us.centos.bz/cdnfly/restore_master.sh -o restore_master.sh
+curl https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/restore_master.sh -o restore_master.sh
 chmod +x restore_master.sh
 ./restore_master.sh
 
+3.1
 从旧主控下载/opt/cdnfly/master/conf/config.py上传到新主控覆盖
 然后在新主控初始化es,重启新主控
 执行如下命令初始化:
+
+旧主控
+tar -zcvf /tmp/es.tar.gz /home/es
+scp /tmp/es.tar.gz root@x.x.x.x:/tmp/
+
+新主控
+rm -rf /home
+tar -zxvf /tmp/es.tar.gz -C /
 
 cd /tmp
 wget us.centos.bz/cdnfly/int_es.sh -O int_es.sh
@@ -129,6 +137,7 @@ chmod +x int_es.sh
 supervisorctl restart all
 
 其中/var/lib/elasticsearch为es的数据目录，可以更改成其它的，比如/home/es
+
 
 - - - - - - - - - -
 
@@ -153,31 +162,17 @@ supervisorctl restart task
 主控更换ip后节点修改命令
 
 new_master_ip="这里替换为主控IP"
-(后台系统升级里查看es_pwd密码)
 es_pwd="这里替换为es密码"
-
 sed -i "s/ES_IP =.*/ES_IP = \"$new_master_ip\"/" /opt/cdnfly/agent/conf/config.py
-
 sed -i "s/MASTER_IP.*/MASTER_IP = \"$new_master_ip\"/g" /opt/cdnfly/agent/conf/config.py
-
 sed -i "s/hosts:.*/hosts: [\"$new_master_ip:9200\"]/" /opt/cdnfly/agent/conf/filebeat.yml
-
 chattr -i /usr/local/openresty/nginx/conf/ /usr/local/openresty/nginx/conf/listen_80.conf /usr/local/openresty/nginx/conf/listen_other.conf
-
 sed -i "s#http://.*:88#http://$new_master_ip:88#" /usr/local/openresty/nginx/conf/listen_80.conf /usr/local/openresty/nginx/conf/listen_other.conf
-
 chattr +i /usr/local/openresty/nginx/conf/ /usr/local/openresty/nginx/conf/listen_80.conf /usr/local/openresty/nginx/conf/listen_other.conf
-
 sed -i "s/ES_PWD =.*/ES_PWD = \"$es_pwd\"/" /opt/cdnfly/agent/conf/config.py
-
 sed -i "s/password:.*/password: \"$es_pwd\"/" /opt/cdnfly/agent/conf/filebeat.yml
-
 sed -i "s/agent-pwd:.*/agent-pwd: \"$es_pwd\"/" /opt/cdnfly/agent/conf/filebeat.yml
-
 ps aux | grep [/]usr/local/openresty/nginx/sbin/nginx | awk '{print $2}'  | xargs kill -HUP ||  true
-
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart filebeat
-
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart agent
-
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart task
