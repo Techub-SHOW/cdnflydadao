@@ -236,7 +236,7 @@ fi
 
 cd /opt
 
-download "https://github.com/LoveesYe/cdnflydadao/raw/main/cdnfly/v5.1.13/agent/$tar_gz_name" "https://github.com/LoveesYe/cdnflydadao/raw/main/cdnfly/v5.1.13/agent/$tar_gz_name" "$tar_gz_name"
+download "https://github.com/Techub-SHOW/cdnflydadao/raw/main/cdnfly/v5.1.13/agent/$tar_gz_name" "https://github.com/Techub-SHOW/cdnflydadao/raw/main/cdnfly/v5.1.13/agent/$tar_gz_name" "$tar_gz_name"
 
 rm -rf $dir_name
 tar xf $tar_gz_name
