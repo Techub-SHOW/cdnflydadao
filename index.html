@@ -1,0 +1,309 @@
+<title>系统设置 - 系统管理</title>
+
+<div class="layui-card layadmin-header">
+  <div class="layui-breadcrumb" lay-filter="breadcrumb">
+    <a lay-href="">首页</a>
+    <a><cite>系统管理</cite></a>
+    <a><cite>系统升级</cite></a>
+  </div>
+</div>
+
+<style type="text/css">
+.layui-elem-quote{padding: 6px;}
+.thin-gray{font-weight: 400;color: #999;} 
+.small-title{font-weight:700;font-size:14px}
+hr {margin-bottom: 30px}
+</style>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body">
+         <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+          <div class="layui-tab-content">
+            <div class="layui-tab-item layui-show">
+              <div class="layui-row ">
+               <div class="layui-col-md2"> <span class="small-title">主控升级</span></div>
+              </div>
+
+              <div class="layui-row layui-col-space10 ">
+                <div class="layui-col-lg2 layui-col-md4">主控版本：</div>
+                <div class="layui-col-lg2 layui-col-md4 version"></div>
+              </div> 
+              <div class="layui-row layui-col-space10 ">
+                <div class="layui-col-lg2 layui-col-md4">版本升级：</div>
+                <div class="layui-col-lg2 layui-hide layui-col-md4 no-update"><i class="layui-icon layui-icon-ok-circle" style="font-size: 18px; color: #009688;"></i> 当前已经是最新版本</div>
+                <div class="layui-col-lg2 layui-hide layui-col-md4 new-version"><i class="layui-icon layui-icon-tips" style="font-size: 18px; color: #FFB800;"></i> 发现新版本 <button type="button" id="master-upgrade" style="margin-left:20px;" class="layui-btn layui-btn-sm">升级</button></div>
+                <div class="layui-col-lg2 layui-hide layui-col-md4 updating"><i style="font-size: 18px; color: #FFB800;" class="layui-icon layui-icon-loading layui-icon layui-anim layui-anim-rotate layui-anim-loop"></i> 正在升级...</div>
+              </div> 
+              <div class="layui-row layui-col-space10 layui-hide update-log">
+                <div class="layui-col-lg2 layui-col-md4 ">升级日志：</div> <div class="layui-col-lg6 layui-col-md8"><textarea rows="15"  readonly name="master-log" class="layui-textarea"></textarea></div>
+              </div>        
+              <hr>
+              <div class="layui-row ">
+               <div class="layui-col-md2">
+                  <span style="margin-right:20px;" class="small-title">节点升级</span>
+                  <span class="layui-hide agent-need-upgrade"><i class="layui-icon layui-icon-tips" style="font-size: 18px; color: #FFB800;"></i> 有节点需要升级</span>
+                  <span class="layui-hide agent-no-need-upgrade"><i class="layui-icon layui-icon-ok-circle" style="font-size: 18px; color: #009688;"></i> 没有节点需要升级</span>
+               </div>
+              </div>
+              <div class="layui-row layui-col-space10 ">
+                <br>
+              
+                <table class="layui-hide" id="test-table-toolbar" lay-filter="test-table-toolbar"></table>
+                <script type="text/html" id="test-table-toolbar-toolbarDemo">
+                    <div class="layui-row layui-col-space10">
+                      <div class="layui-col-md9">
+                        <button class="layui-btn layui-btn-sm layui-btn-disabled" id="agent-update" lay-event="upgrade">升级</button>
+                      </div>
+                                     
+                    </div>
+                </script>
+                <script type="text/html" id="test-table-toolbar-barDemo">
+                  <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="log">升级日志</a>
+                </script>                              
+              </div> 
+              <hr>
+              <div class="layui-row ">
+               <div class="layui-col-md2"> <span class="small-title">节点安装命令</span></div>
+              </div>
+              <pre class="layui-code agent-install">
+
+              </pre>   
+              注意：<span class="ip"></span>为程序自动获取的主控IP，如果不正确，请更正.
+            </div>
+        </div>
+      </div>                 
+
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<script type="text/javascript">
+  var admin = layui.admin
+  var $ = layui.$
+  function show_update_log (argument) {
+    admin.req({
+      url: '/master/upgrades/log'
+      ,type: "get"
+      ,contentType:"application/json"
+      ,dataType: "json"
+      ,error_show: false
+      ,done: function(res){
+        var data = res.data
+        $textarea = $("textarea[name='master-log']")
+        $textarea.val(data)
+        $textarea.scrollTop($textarea[0].scrollHeight);
+        if (data.search("升级完成") != -1) {
+          layui.index.render();
+        }
+      }
+    });  
+  }
+
+  layui.use(['admin', 'table','form'], function(){
+    var $ = layui.$
+    ,admin = layui.admin
+    ,view = layui.view
+    ,table = layui.table
+    ,form = layui.form;
+
+    form.render()
+
+    admin.on('hash(master_upgrade)', function(router){
+        clearInterval(window.master_update_log_interval)
+    });
+
+    // 获取主控版本
+    admin.req({
+      url: '/master/upgrades'
+      ,type: "get"
+      ,contentType:"application/json"
+      ,dataType: "json"        
+      ,done: function(res){
+        var data = res.data
+        window.agent_ver = data['agent_ver']
+        var latest_version_name = data['latest_version_name']
+        var latest_version_num = data['latest_version_num']
+        var upgrade_run = data['upgrade_run']
+        var version_name = data['version_name']
+        var version_num = data['version_num']
+        var ip = data['ip']
+        var es_ip = data['es_ip']
+        var es_pwd = data['es_pwd']
+
+        $(".version").html("当前版本："+version_name+"<br>最新版本："+latest_version_name)
+
+        if (window.master_update_log_interval) {
+          clearInterval(window.master_update_log_interval)
+        }
+
+          
+        if (upgrade_run) {
+          $(".updating").removeClass("layui-hide")
+          $(".update-log").removeClass("layui-hide")
+          window.master_update_log_interval = setInterval('show_update_log()', 3000);
+
+        } else {
+          if (latest_version_num != version_num) {
+            $(".new-version").removeClass("layui-hide")
+          } else {
+            $(".no-update").removeClass("layui-hide")
+          }
+        }
+        list_node()
+
+        // 节点安装命令
+        $(".agent-install").text("curl -fsSL https://github.com/Techub-SHOW/cdnfly-kaixin/raw/main/agent.sh -o agent.sh && chmod +x agent.sh && ./agent.sh --master-ver "+version_name+" --master-ip "+ip+" --es-ip "+es_ip +" --es-pwd "+ es_pwd)
+        $(".ip").text(ip)
+      }
+    });    
+
+    function list_node(argument) {
+      // 获取节点版本
+      admin.req({
+        url: '/agent/upgrades'
+        ,type: "get"
+        ,contentType:"application/json"
+        ,dataType: "json"        
+        ,done: function(res){
+          var data = res.data
+          var need_upgrade = 0
+          for (i in data) {
+            var version_num = data[i]['version_num']
+            if (version_num != window.agent_ver) {
+              need_upgrade += 1
+            }
+          }
+
+          table.render({
+            elem: '#test-table-toolbar'
+            ,toolbar: '#test-table-toolbar-toolbarDemo'
+            ,title: '节点列表'
+            ,cols: [[
+              {type: 'checkbox', fixed: 'left'}
+              ,{field:'id', title:'节点ID', sort: true}
+              ,{field:'name', title:'节点名称'}
+              ,{field:'version_name', title:'当前版本'}
+              ,{field:'version_name', title:'要求版本',templet:function (d) {
+                var first = window.agent_ver.substr(0,1)
+                var two = parseInt(window.agent_ver.substr(1,2))
+                var three = parseInt(window.agent_ver.substr(3,2))
+                return "v"+first+"."+two+"."+three
+              }}
+              ,{field:'state', title:'状态', templet: function(d){
+                if (d.upgrade_run == true) {
+                  return '<i style="font-size: 18px; color: #FFB800;" class="layui-icon layui-icon-loading layui-icon layui-anim layui-anim-rotate layui-anim-loop"></i> 升级中...'
+                } else {
+                  if (d.version_num == window.agent_ver) {
+                    return '<span class="layui-badge layui-bg-green">不需要升级</span>'
+                  } else {
+                    return '<i class="layui-icon layui-icon-tips" style="font-size: 18px; color: #FFB800;"></i> 请升级'
+                  }
+                }
+              }}
+              ,{fixed: 'right', title:'操作', toolbar: '#test-table-toolbar-barDemo', width:180}
+            ]]
+            ,limit: 10000
+            ,page: false
+            ,data: data
+          });
+
+          if (need_upgrade == 0) {
+            $(".agent-no-need-upgrade").removeClass("layui-hide")
+          } else {
+            $(".agent-need-upgrade").removeClass("layui-hide")
+            $("#agent-update").removeClass("layui-btn-disabled")
+          }
+
+        }
+      });     
+
+
+    }
+
+    $("#master-upgrade").click(function (argument) {
+      admin.req({
+        url: '/master/upgrades'
+        ,type: "post"
+        ,contentType:"application/json"
+        ,dataType: "json"        
+        ,done: function(res){
+          layui.index.render();
+        }
+      });      
+    })
+
+    //头工具栏事件
+    table.on('toolbar(test-table-toolbar)', function(obj){
+      var checkStatus = table.checkStatus(obj.config.id);
+      var data = checkStatus.data;
+      if (data.length == 0) {
+        layer.alert('请选择节点');   
+        return
+      }
+
+      switch(obj.event){
+        case 'upgrade':
+          admin.req({
+            url: '/agent/upgrades' //实际使用请改成服务端真实接口
+            ,data: JSON.stringify(data)
+            ,type: "post"
+            ,contentType:"application/json"
+            ,dataType: "json"
+            ,done: function(res){
+              //登入成功的提示与跳转
+              layer.msg('发送升级指令成功', {
+                offset: '15px'
+                ,icon: 1
+                ,time: 1000
+              }, function(){
+                layui.index.render();
+              });
+            }
+          });
+        break;    
+      };
+    });
+
+    //监听行工具事件
+    table.on('tool(test-table-toolbar)', function(obj){
+      var data = obj.data;
+      var node_id = data.id
+      if(obj.event === 'log'){
+        admin.popup({
+          title: '升级日志'
+          ,area: ['500px', '500px']
+          ,id: 'LAY-popup-agent-log'
+          ,success: function(layero, index){
+              view(this.id).render('system/update/log',data).done(function(){                         
+                function get_log(argument) {
+                  admin.req({
+                    url: '/agent/upgrades/log/' + node_id //实际使用请改成服务端真实接口
+                    ,type: "get"
+                    ,contentType:"application/json"
+                    ,dataType: "json"
+                    ,done: function(res){
+                      var data = res.data
+                      $textarea = $("textarea[name='agent-log']")
+                      $textarea.val(data)
+                      $textarea.scrollTop($textarea[0].scrollHeight);                   
+                    }
+                  });                  
+                }
+                get_log()
+                $("#refresh_detail").click(function (argument) {
+                  get_log()
+                })
+
+              });
+          }
+        });
+      }
+    });  
+
+  });  
+
+</script>
