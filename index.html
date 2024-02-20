@@ -158,7 +158,7 @@ hr {margin-bottom: 30px}
         list_node()
 
         // 节点安装命令
-        $(".agent-install").text("\n Centos"+"\n"+"curl -fsSL https://github.com/Techub-SHOW/cdnfly-kaixin/raw/main/agent.sh -o agent.sh && chmod +x agent.sh && ./agent.sh --master-ver "+version_name+" --master-ip "+ip+" --es-ip "+es_ip +" --es-pwd "+ es_pwd+ "\n" +"\n Ubuntu"+ "\n"+"curl -fsSL https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/cdnfly/v5.1.13/agent/agent.sh -o agent.sh && chmod +x agent.sh && ./agent.sh --master-ver "+version_name+" --master-ip "+ip+" --es-ip "+es_ip +" --es-pwd "+ es_pwd)
+        $(".agent-install").text(" Centos"+"\n"+"curl -fsSL https://github.com/Techub-SHOW/cdnfly-kaixin/raw/main/agent.sh -o agent.sh && chmod +x agent.sh && ./agent.sh --master-ver "+version_name+" --master-ip "+ip+" --es-ip "+es_ip +" --es-pwd "+ es_pwd+ "\n" +"\n Ubuntu"+ "\n"+"curl -fsSL https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/cdnfly/v5.1.13/agent/agent.sh -o agent.sh && chmod +x agent.sh && ./agent.sh --master-ver "+version_name+" --master-ip "+ip+" --es-ip "+es_ip +" --es-pwd "+ es_pwd)
         $(".ip").text(ip)
       }
     });    
