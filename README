@@ -284,7 +284,7 @@ bash <(curl -sSLk us.centos.bz/cdnfly/clean_cache.sh)
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart all
 reboot
 ------------------------------------------------------------
-[安装节点]
+[安装节点] Tips:建议安装时加入虚拟内存(swap)与BBR;
 
  Centos
 curl -fsSL https://github.com/Techub-SHOW/cdnfly-kaixin/raw/main/agent.sh -o agent.sh && chmod +x agent.sh && ./agent.sh --master-ver v5.1.13 --master-ip [x.x.x.x] --es-ip [x.x.x.x] --es-pwd [es密码]
