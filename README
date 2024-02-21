@@ -330,6 +330,7 @@ rm -rf /usr/lib64/perl5/vendor_perl/DBD/mysql
 rm -rf /www/backup/oldData/mysql
 rm -rf /var/lib/systemd/catalog/*
 
+[Check]
 vi /etc/rc.local
 vi /etc/rc.d/rc.local
 crontab -e
