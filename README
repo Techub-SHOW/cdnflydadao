@@ -274,3 +274,21 @@ supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart filebeat
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart agent
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart task
 history -c
+
+------------------------------------------------------------
+更换主控后旧节点数据遗留问题导致同步问题，需卸载服务器(节点)并重新安装
+
+cd /tmp/ && curl -m 5 https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/agent_uninstall.sh -o agent_uninstall.sh || curl -m 5 https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/agent_uninstall.sh && chmod +x agent_uninstall.sh && ./agent_uninstall.sh 
+bash <(curl -sSLk us.centos.bz/cdnfly/clean_log.sh) 
+bash <(curl -sSLk us.centos.bz/cdnfly/clean_cache.sh) 
+supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart all
+reboot
+------------------------------------------------------------
+[安装节点]
+
+ Centos
+curl -fsSL https://github.com/Techub-SHOW/cdnfly-kaixin/raw/main/agent.sh -o agent.sh && chmod +x agent.sh && ./agent.sh --master-ver v5.1.13 --master-ip [x.x.x.x] --es-ip [x.x.x.x] --es-pwd [es密码]
+
+ Ubuntu
+curl -fsSL https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/cdnfly/v5.1.13/agent/agent.sh -o agent.sh && chmod +x agent.sh && ./agent.sh --master-ver v5.1.13 --master-ip [x.x.x.x] --es-ip [x.x.x.x] --es-pwd [es密码]
+------------------------------------------------------------
