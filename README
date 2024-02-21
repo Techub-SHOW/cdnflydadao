@@ -187,6 +187,7 @@ supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf restart all
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart filebeat
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart agent
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart task
+supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart all
 
 - - - - - - - - - -
 
@@ -283,6 +284,7 @@ bash <(curl -sSLk us.centos.bz/cdnfly/clean_log.sh)
 bash <(curl -sSLk us.centos.bz/cdnfly/clean_cache.sh) 
 supervisorctl -c /opt/cdnfly/agent/conf/supervisord.conf restart all
 reboot
+
 ------------------------------------------------------------
 [安装节点] Tips:建议安装时加入虚拟内存(swap)与BBR;
 
@@ -291,4 +293,44 @@ curl -fsSL https://github.com/Techub-SHOW/cdnfly-kaixin/raw/main/agent.sh -o age
 
  Ubuntu
 curl -fsSL https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/cdnfly/v5.1.13/agent/agent.sh -o agent.sh && chmod +x agent.sh && ./agent.sh --master-ver v5.1.13 --master-ip [x.x.x.x] --es-ip [x.x.x.x] --es-pwd [es密码]
+
+------------------------------------------------------------
+[卸载主控]
+cd /tmp/ && curl -m 5 https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/master_uninstall.sh -o master_uninstall.sh || curl -m 5 https://raw.githubusercontent.com/Techub-SHOW/cdnflydadao/main/master_uninstall.sh && chmod +x master_uninstall.sh && ./master_uninstall.sh 
+
+supervisorctl -c /opt/cdnfly/master/conf/supervisord.conf stop all
+systemctl stop mariadb
+systemctl disable mariadb
+systemctl stop elasticsearch
+systemctl disable elasticsearch
+yum remove mariadb-server mariadb-devel mariadb -y
+rpm -e elasticsearch-7.6.1
+docker stop $(docker ps -aq)
+docker rm $(docker ps -aq)
+docker rmi $(docker images -q)
+rm -rf /usr/share/elasticsearch
+rm -rf /var/run/elasticsearch
+rm -rf /etc/sysconfig/elasticsearch
+rm -rf /etc/elasticsearch/
+rm -rf /opt/cdnfly/
+rm -rf /var/log/cdnfly/
+rm -rf /opt/*
+rm -rf /run/mariadb
+rm -rf /var/log/mariadb
+rm -rf /usr/bin/mysql*
+rm -rf /usr/bin/mysqladmin
+rm -rf /var/lib/mysql
+rm -rf /usr/lib64/mysql
+rm -rf /usr/share/mysql
+rm -rf /var/lib/docker
+rm -rf /var/spool/mail/mysql
+rm -rf /etc/selinux/targeted/active/modules/100/mysql
+rm -rf /usr/lib64/perl5/vendor_perl/auto/DBD/mysql
+rm -rf /usr/lib64/perl5/vendor_perl/DBD/mysql
+rm -rf /www/backup/oldData/mysql
+rm -rf /var/lib/systemd/catalog/*
+
+vi /etc/rc.local
+vi /etc/rc.d/rc.local
+crontab -e
 ------------------------------------------------------------
